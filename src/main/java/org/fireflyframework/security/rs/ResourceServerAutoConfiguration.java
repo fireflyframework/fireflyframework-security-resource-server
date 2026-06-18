@@ -35,6 +35,8 @@ import org.fireflyframework.security.webflux.context.ReactorSecurityContextAdapt
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.converter.Converter;
@@ -68,6 +70,8 @@ import java.util.List;
  * defaults. Every bean is {@link ConditionalOnMissingBean} so applications can override any piece.
  */
 @AutoConfiguration
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
+@ConditionalOnProperty(prefix = "firefly.security.resource-server", name = "enabled", matchIfMissing = true)
 @EnableWebFluxSecurity
 @EnableConfigurationProperties(ResourceServerProperties.class)
 public class ResourceServerAutoConfiguration {
