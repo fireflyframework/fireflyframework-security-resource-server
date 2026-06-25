@@ -122,15 +122,34 @@ public class ResourceServerAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public ReactiveJwtDecoder fireflyReactiveJwtDecoder(KeyManagementPort keyManagementPort, ResourceServerProperties properties) {
+        NimbusReactiveJwtDecoder decoder = buildDecoder(keyManagementPort, properties);
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(buildValidators(properties)));
+        return decoder;
+    }
+
+    /**
+     * Builds the decoder for an external IdP's remote JWKS when {@code jwk-set-uri} is configured
+     * (with the asymmetric algorithm allowlist), otherwise from the in-memory signing key of
+     * {@link KeyManagementPort} — the original, default behaviour, left unchanged.
+     */
+    static NimbusReactiveJwtDecoder buildDecoder(KeyManagementPort keyManagementPort, ResourceServerProperties properties) {
+        if (properties.getJwkSetUri() != null && !properties.getJwkSetUri().isBlank()) {
+            return NimbusReactiveJwtDecoder.withJwkSetUri(properties.getJwkSetUri())
+                    .jwsAlgorithms(algorithms -> properties.getSignatureAlgorithms()
+                            .forEach(name -> algorithms.add(SignatureAlgorithm.from(name))))
+                    .build();
+        }
         SigningKey active = keyManagementPort.activeSigningKey().block();
         if (active == null || !(active.publicKey() instanceof RSAPublicKey rsaPublicKey)) {
             throw new IllegalStateException("No RSA signing key available to build the JWT decoder");
         }
-        NimbusReactiveJwtDecoder decoder = NimbusReactiveJwtDecoder
+        return NimbusReactiveJwtDecoder
                 .withPublicKey(rsaPublicKey)
                 .signatureAlgorithm(SignatureAlgorithm.RS256)
                 .build();
+    }
 
+    private static List<OAuth2TokenValidator<Jwt>> buildValidators(ResourceServerProperties properties) {
         List<OAuth2TokenValidator<Jwt>> validators = new ArrayList<>();
         validators.add(new JwtTimestampValidator());
         if (properties.getIssuer() != null && !properties.getIssuer().isBlank()) {
@@ -139,8 +158,7 @@ public class ResourceServerAutoConfiguration {
         if (!properties.getAudiences().isEmpty()) {
             validators.add(audienceValidator(properties.getAudiences()));
         }
-        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(validators));
-        return decoder;
+        return validators;
     }
 
     @Bean

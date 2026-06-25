@@ -12,17 +12,49 @@
     </parent>
 
     <artifactId>fireflyframework-security-resource-server</artifactId>
-    <version>26.06.02</version>
+    <!-- Dev version, distinct from the 26.06.02 release so it coexists in .m2 without overwriting it. -->
+    <version>26.06.03-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Firefly Framework - Security Resource Server</name>
     <description>Secure-by-default reactive OAuth2 resource server: JWT (and opaque) validation, claim-to-authority mapping, default-deny chain and hardened security headers. Delivered to applications via the application starter.</description>
 
+    <!--
+        This module is 26.06.03-SNAPSHOT but every other framework module it (transitively) uses is the
+        unchanged 26.06.02 release. fireflyframework-parent manages the security platform to
+        ${project.version}, which here leaks 26.06.03-SNAPSHOT; pin those back to 26.06.02.
+    -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.fireflyframework</groupId>
+                <artifactId>fireflyframework-security-api</artifactId>
+                <version>26.06.02</version>
+            </dependency>
+            <dependency>
+                <groupId>org.fireflyframework</groupId>
+                <artifactId>fireflyframework-security-spi</artifactId>
+                <version>26.06.02</version>
+            </dependency>
+            <dependency>
+                <groupId>org.fireflyframework</groupId>
+                <artifactId>fireflyframework-security-core</artifactId>
+                <version>26.06.02</version>
+            </dependency>
+            <dependency>
+                <groupId>org.fireflyframework</groupId>
+                <artifactId>fireflyframework-security-webflux</artifactId>
+                <version>26.06.02</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.fireflyframework</groupId>
+            <!-- Pinned to the 26.06.02 release (this module is 26.06.03-SNAPSHOT; webflux is unchanged). -->
             <artifactId>fireflyframework-security-webflux</artifactId>
-            <version>${project.version}</version>
+            <version>26.06.02</version>
         </dependency>
 
         <dependency>
