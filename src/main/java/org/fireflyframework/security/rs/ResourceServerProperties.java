@@ -48,4 +48,19 @@ public class ResourceServerProperties {
 
     /** Claim paths inspected for OAuth2 scopes. */
     private List<String> scopeClaimPaths = new ArrayList<>();
+
+    /**
+     * Remote JWKS endpoint of an external IdP (e.g. Keycloak), e.g.
+     * {@code https://auth.example/realms/r/protocol/openid-connect/certs}. When set, the default
+     * decoder validates tokens against this JWKS — so a resource server fronting an external IdP needs
+     * no decoder override. When blank, the in-memory signing key ({@code KeyManagementPort}) is used,
+     * exactly as before (backward compatible).
+     */
+    private String jwkSetUri;
+
+    /**
+     * JWS signature algorithm allowlist applied to the external-JWKS decoder (RFC 8725): rejects
+     * {@code none} and symmetric algorithms. Asymmetric only; defaults to RS256/PS256/ES256.
+     */
+    private List<String> signatureAlgorithms = new ArrayList<>(List.of("RS256", "PS256", "ES256"));
 }
